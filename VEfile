@@ -1,0 +1,11 @@
+requirements:
+  - pyzmq
+
+---
+profile: development
+
+requirements:
+  - ipython
+  - nose
+  - fudge
+  - testkit
