@@ -1,5 +1,5 @@
 import fudge
-from dploymentcenter.main import *
+from dploycenter.main import *
 
 @fudge.patch('threading.Thread', 'threading.active_count')
 def test_coordinator_start_and_stop(fake_thread_cls, fake_active):

@@ -1,5 +1,5 @@
 from nose.tools import *
-from dploymentcenter import subjson
+from dploycenter import subjson
 
 def test_encode():
     encoded = subjson.dumps('hello', dict(a=1))

@@ -1,4 +1,4 @@
-from dploymentcenter.linkedlist import *
+from dploycenter.linkedlist import *
 
 def test_initialize_linked_list():
     linked_list = LinkedList()

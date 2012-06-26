@@ -4,7 +4,7 @@ VERSION = '0.0.1'
 
 LONG_DESCRIPTION = open('README.rst').read()
 
-setup(name='dployment-center',
+setup(name='dploy-center',
     version=VERSION,
     description="dploy's build server",
     long_description=LONG_DESCRIPTION,
@@ -22,7 +22,7 @@ setup(name='dployment-center',
     ],
     entry_points={
         'console_scripts': [
-            'dployment-center = dploymentcenter.main:main',
+            'dploy-center = dploycenter.main:main',
         ],
     },
     classifiers=[

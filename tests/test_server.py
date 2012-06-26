@@ -1,5 +1,5 @@
 import fudge
-from dploymentcenter.server import *
+from dploycenter.server import *
 
 @fudge.test
 def test_server_polling_router_route():

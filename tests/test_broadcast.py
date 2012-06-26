@@ -5,7 +5,7 @@ tests.test_broadcast
 Test the broadcast server
 """
 import fudge
-from dploymentcenter.broadcast import BroadcastServer
+from dploycenter.broadcast import BroadcastServer
 
 @fudge.test
 def test_broadcast_server_handle_incoming():
