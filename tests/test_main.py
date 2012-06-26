@@ -1,7 +1,5 @@
 import fudge
-from testkit import ContextUser
 from dploymentcenter.main import *
-from .utils import verify, reset
 
 @fudge.patch('threading.Thread', 'threading.active_count')
 def test_coordinator_start_and_stop(fake_thread_cls, fake_active):
