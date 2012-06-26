@@ -6,7 +6,7 @@ LONG_DESCRIPTION = open('README.rst').read()
 
 setup(name='dployment-center',
     version=VERSION,
-    description="virtstrap - Making repeatable environments easy!",
+    description="dploy's build server",
     long_description=LONG_DESCRIPTION,
     keywords='',
     author='Reuven V. Gonzales',

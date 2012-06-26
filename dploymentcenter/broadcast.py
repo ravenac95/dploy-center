@@ -29,5 +29,6 @@ class BroadcastServer(Server):
         }
 
     def handle_incoming(self, socket):
-        message = socket.recv()
-        self.out_socket.send(message)
+        """Simple routes the incoming message to the PUB socket"""
+        message = socket.recv_multipart()
+        self.out_socket.send_multipart(message)

@@ -13,6 +13,7 @@ def test_coordinator_start_and_stop(fake_thread_cls, fake_active):
     fake_server2.provides('start_server')
     # Fake Options
     fake_options = fudge.Fake('options')
+    fake_config = fudge.Fake('config')
 
     fake_thread = fake_thread_cls.expects_call().returns_fake()
     fake_thread.expects('start')
@@ -20,7 +21,7 @@ def test_coordinator_start_and_stop(fake_thread_cls, fake_active):
 
     fake_active.expects_call().returns(1)
 
-    coordinator = ServerCoordinator.setup(fake_servers, fake_options)
+    coordinator = ServerCoordinator.setup(fake_servers, fake_options, fake_config)
     coordinator.start()
     coordinator.stop()
 

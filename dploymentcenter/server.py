@@ -45,29 +45,30 @@ class Server(object):
     logger = logger
 
     @classmethod
-    def create(cls, context, control_socket_uri, options, config):
-        server = cls(context, control_socket_uri, options, config)
+    def create(cls, context, server_control_socket_uri, options, config):
+        server = cls(context, server_control_socket_uri, options, config)
         server.setup()
         return server
 
-    def __init__(self, context, control_socket_uri, options, config):
+    def __init__(self, context, server_control_socket_uri, options, config):
         self.context = context
         self.options = options
         self.config = config
-        self._control_socket_uri = control_socket_uri
-        self._control_socket = None
+        self._server_control_socket_uri = server_control_socket_uri
+        self._server_control_socket = None
         self._listening_sockets = {}
     
-    def connect_to_control_socket(self):
+    def connect_to_server_control_socket(self):
         """Subscribes to the control socket"""
-        control_socket = self.context.socket(zmq.SUB)
-        control_socket.setsockopt(zmq.SUBSCRIBE, constants.CONTROL_TOPIC)
-        control_socket.connect(self._control_socket_uri)
-        self._control_socket = control_socket
-        self._listening_sockets['control'] = control_socket
+        server_control_socket = self.context.socket(zmq.SUB)
+        server_control_socket.setsockopt(zmq.SUBSCRIBE, 
+                constants.CONTROL_TOPIC)
+        server_control_socket.connect(self._server_control_socket_uri)
+        self._server_control_socket = server_control_socket
+        self._listening_sockets['server_control__'] = server_control_socket
 
     def setup(self):
-        self.connect_to_control_socket()
+        self.connect_to_server_control_socket()
         extra_listening_sockets = self.setup_sockets()
         self._listening_sockets.update(extra_listening_sockets)
 
@@ -87,7 +88,7 @@ class Server(object):
                         'intentionally' % self.__class__.__name__)
                 break
 
-    def handle_control(self, socket):
+    def handle_server_control__(self, socket):
         control_string = socket.recv()
         if control_string == 'shutdown':
             self.logger.debug('Server "%s" received shutdown event '
