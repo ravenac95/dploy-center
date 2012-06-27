@@ -1,4 +1,4 @@
-dployment-center - The build server for dploy
+dploy-center - The build server for dploy
 =============================================
 
 This is the main controller for dploy. It builds dploy "cargo" files that are
