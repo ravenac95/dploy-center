@@ -1,0 +1,2 @@
+class BuildForeman(object):
+    pass
