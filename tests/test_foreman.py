@@ -5,15 +5,12 @@ class TestBuildForeman(object):
     def setup(self):
         fake_builder = fudge.Fake('CargoBuilder')
         fake_application = fudge.Fake('Application')
-        foreman = BuildForeman(fake_application, fake_builder)
+        self.foreman = BuildForeman(fake_application, fake_builder)
     
         # Store fakes in class
         self.fake_builder = fake_builder
         self.fake_application = fake_application
 
-        # Store foreman in class
-        self.foreman = foreman
-    
     @fudge.test
     def test_prepare_cargo(self):
         fake_builder = self.fake_builder
@@ -35,3 +32,12 @@ class TestBuildForeman(object):
         self.foreman.distribute_cargo()
 
 
+class TestCargoBuilder(object):
+    def setup(self):
+        fake_cargo_service = fudge.Fake()
+        self.fake_cargo_service = fake_cargo_service
+
+        self.builder = CargoBuilder(fake_cargo_service)
+
+    def test_cargo_builder(self):
+        self.builder = builder
