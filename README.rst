@@ -38,7 +38,7 @@ The configuration for dployment-center is loaded from a file name
 configuration file is very simple at this time. It contains one section that
 specifies the sockets it binds to. Here's an example::
     
-    [dployment-center]
+    [dploy-center]
     broadcast_socket = ipc:///var/lib/dploy/center-broadcast.sock
     request_socket = ipc:///var/lib/dploy/center-control.sock
 
@@ -47,8 +47,8 @@ Possible Usage
 
 Running the server::
     
-    $ dployment-center
+    $ dploy-center
 
 Run the server as a daemon::
     
-    $ dployment-center --daemon
+    $ dploy-center --daemon
