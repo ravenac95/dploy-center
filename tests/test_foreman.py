@@ -2,16 +2,16 @@ import fudge
 from dploycenter.foreman import *
 
 
-class FakeApp(object):
-    name = "name"
-    md5 = "1234567890abcdef"
-
+class FakeApp(fudge.Fake):
+    def __init__(self, *args, **kwargs):
+        super(FakeApp, self).__init__(*args, **kwargs)
+        self.has_attr(name='name', commit='1234567890abcdef')
 
 class TestBuildForeman(object):
     def setup(self):
         fake_builder = fudge.Fake('CargoBuilder')
         fake_app = fudge.Fake('Application')
-        self.foreman = BuildForeman(fake_app, fake_builder)
+        self.foreman = BuildForeman('fakepath', fake_app, fake_builder)
 
         # Store fakes in class
         self.fake_builder = fake_builder
@@ -21,49 +21,58 @@ class TestBuildForeman(object):
     def test_prepare_cargo(self):
         fake_builder = self.fake_builder
 
-        fake_builder.expects('prepare_container').with_args(self.fake_app)
+        fake_builder.expects('prepare').with_args(self.fake_app)
         fake_builder.expects('build_app')
-        fake_builder.expects('compress_container')
+        fake_builder.expects('create_cargo_file').with_args('fakepath')
 
         self.foreman.prepare_cargo()
 
-    @fudge.test
-    def test_distribute_cargo(self):
-        fake_builder = self.fake_builder
-
-        fake_cargo = fudge.Fake('Cargo')
-
-        fake_builder.expects('get_cargo').returns(fake_cargo)
-
-        self.foreman.distribute_cargo()
-
-
 class TestCargoBuilder(object):
     def setup(self):
-        fake_cargo_service = fudge.Fake()
-        self.fake_cargo_service = fake_cargo_service
+        fake_app_container_service = fudge.Fake()
+        self.fake_app_container_service = fake_app_container_service
 
         fake_app_container = fudge.Fake()
         self.fake_app_container = fake_app_container
 
-        self.builder = CargoBuilder(fake_cargo_service)
+        fake_cargo_file_writer = fudge.Fake('CargoFileWriter')
+        self.fake_cargo_file_writer = fake_cargo_file_writer
 
-    @fudge.test
-    def test_prepare_container(self):
+        self.builder = CargoBuilder(fake_app_container_service, fake_cargo_file_writer)
+
+    @fudge.patch('dploycenter.foreman.Cargo')
+    def test_prepare_container(self, fake_cargo_cls):
         builder = self.builder
 
         fake_app = FakeApp()
+        fake_container = fudge.Fake()
 
-        (self.fake_cargo_service
-                .expects('initialize_container').with_args(fake_app))
+        (self.fake_app_container_service
+                .expects('initialize_container').with_args(fake_app)
+                .returns(fake_container))
+        fake_cargo_cls.expects('from_app')
 
-        builder.prepare_container(fake_app)
+        builder.prepare(fake_app)
 
     @fudge.test
     def test_build_app(self):
         builder = self.builder
         builder._app_container = self.fake_app_container
 
-        self.fake_app_container.expects('load_application')
+        self.fake_app_container.expects('run_build')
 
         builder.build_app()
+
+    @fudge.test
+    def test_create_file(self):
+        fake_app_container = self.fake_app_container
+        fake_app_container.expects('compress').returns('compressed')
+        
+        builder = self.builder
+        builder._app_container = fake_app_container
+        fake_cargo = builder._cargo = fudge.Fake()
+
+        (self.fake_cargo_file_writer.expects('from_compressed_app_container').
+                with_args('fakepath', fake_cargo, 'compressed'))
+
+        builder.create_cargo_file('fakepath')
