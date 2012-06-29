@@ -40,3 +40,14 @@ class Cargo(object):
     @classmethod
     def from_app(self, app):
         pass
+
+class FakeAppContainer(object):
+    def run_build(self):
+        print "running build"
+
+class FakeAppContainerService(object):
+    def initialize_container(self, *args, **kwargs):
+        return FakeAppContainer()
+
+def start_cargo_build_service():
+    print "hello"
