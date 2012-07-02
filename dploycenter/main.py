@@ -1,5 +1,5 @@
 """
-dploymentcenter.main
+dploycenter.main
 ~~~~~~~~~~~~~~~~~~~~
 
 Main entry point for this application
@@ -14,9 +14,9 @@ import constants
 import broadcast
 import control
 
-logger = logging.getLogger('dploymentcenter')
+logger = logging.getLogger('dploycenter')
 
-parser = argparse.ArgumentParser(description='dployment-center')
+parser = argparse.ArgumentParser(description='dploy-center server')
 parser.add_argument('--daemon', action='store_true')
 parser.add_argument('--quiet', action='store_true')
 parser.add_argument('-c', '--config-file', dest='config_file', 

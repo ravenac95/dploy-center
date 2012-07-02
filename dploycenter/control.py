@@ -3,7 +3,7 @@ import zmq
 from . import constants
 from .server import Server
 
-logger = logging.getLogger('dploymentcenter.broadcast')
+logger = logging.getLogger('dploycenter.broadcast')
 
 def start_server(context, control_socket_uri, options, config):
     server = ControlServer.create(context, control_socket_uri, options, 

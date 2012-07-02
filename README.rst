@@ -9,23 +9,23 @@ for an LXC container plus meta data.
 How it works (will work)
 ------------------------
 
-1. The dployment-center receives notifications via a zeromq request socket from
+1. The dploy-center receives notifications via a zeromq request socket from
    a git server. We are currently building a custom version of gitosis which
    will also be released.
-2. Once a notification has been received the dployment-center returns a random
+2. Once a notification has been received the dploy-center returns a random
    key. This key is used by the custom gitosis application to monitor the
-   output from the dployment-center on the status of the build.
+   output from the dploy-center on the status of the build.
 3. A ``CargoBuilder`` process is spawned. This process is in charge of creating
    the ``.cargo`` file.
-4. The cargo file is distributed to any dployment zones (application servers
+4. The cargo file is distributed to any dploy zones (application servers
    mostly).
 
 Architecture Overview
 ---------------------
 
-The dployment-center consists of two different servers:
+The dploy-center consists of two different servers:
 - **Build Control Server**- This server receives notifications from gitosis
-  processes. Anything from outside of the dployment-center comes through here
+  processes. Anything from outside of the dploy-center comes through here
   first.
 - **Broadcast Server** - This server publishes output from the CargoBuilders.
   The output is subscribed by any gitosis processes.
@@ -33,8 +33,8 @@ The dployment-center consists of two different servers:
 Configuring the server
 ----------------------
 
-The configuration for dployment-center is loaded from a file name
-``dployment-center.conf`` current directory unless otherwise specified. The
+The configuration for dploy-center is loaded from a file name
+``dploy.conf`` current directory unless otherwise specified. The
 configuration file is very simple at this time. It contains one section that
 specifies the sockets it binds to. Here's an example::
     

@@ -1,5 +1,5 @@
 """
-dploymentcenter.server
+dploycenter.server
 ~~~~~~~~~~~~~~~~~~~~~~
 
 A ZMQ-aware server class.
@@ -8,7 +8,7 @@ import zmq
 import logging
 from . import constants
 
-logger = logging.getLogger('dploymentcenter')
+logger = logging.getLogger('dploycenter')
 
 class ServerStopped(Exception):
     pass
