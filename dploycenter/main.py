@@ -122,7 +122,7 @@ class DploymentCenterRunner(object):
         finally:
             logger.info('Shutting down. Waiting for child processes and threads')
             coordinator.stop()
-            logger.info('All processes terminated')
+            logger.info('Done.')
 
 def main(args=None):
     runner = DploymentCenterRunner()
