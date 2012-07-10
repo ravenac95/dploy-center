@@ -12,7 +12,7 @@ import zmq
 import threading
 import constants
 import broadcast
-import control
+import queue
 
 logger = logging.getLogger('dploycenter')
 
@@ -37,7 +37,7 @@ class ServerCoordinator(object):
         return coordinator
 
     def __init__(self, servers, options, config, context, control_socket_uri,
-            thread_poll_duration=2):
+            thread_poll_duration=0.5):
         self._servers = servers
         self._options = options
         self._config = config
@@ -95,7 +95,7 @@ class ServerCoordinator(object):
                         'Waiting for them to terminate')
                 break
 
-class DploymentCenterRunner(object):
+class DployCenterRunner(object):
     """Main Runner"""
     def __init__(self):
         pass
@@ -112,20 +112,21 @@ class DploymentCenterRunner(object):
             logger.setLevel(logging.DEBUG)
             logger.addHandler(handler)
         coordinator = ServerCoordinator.setup(
-                [broadcast, control], options, config)
-        logger.info('Starting DploymentCenter')
+                [broadcast, queue], options, config)
+        logger.info('Starting DployCenter')
         coordinator.start()
         try:
             coordinator.wait()
         except (KeyboardInterrupt, ApplicationDying):
             pass
         finally:
-            logger.info('Shutting down. Waiting for child processes and threads')
+            logger.info('Shutting down. Waiting for '
+                    'child processes and threads')
             coordinator.stop()
             logger.info('Done.')
 
 def main(args=None):
-    runner = DploymentCenterRunner()
+    runner = DployCenterRunner()
     runner.run(args=args)
 
 if __name__ == '__main__':
