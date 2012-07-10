@@ -3,8 +3,6 @@ import zmq
 import multiprocessing
 from . import constants
 from .server import Server
-from .foreman import start_cargo_build_service
-
 
 logger = logging.getLogger('dploycenter.broadcast')
 
