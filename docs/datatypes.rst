@@ -9,9 +9,6 @@ generally used in communication protocols. They should be language agnostic.
 DeployOrder
 -----------
 
-Purpose
-~~~~~~~
-
 Used to describe deployment jobs. These are sent to the DeployQueue.
 
 Schema
@@ -23,9 +20,6 @@ Schema
 
 AppBuildOrder
 -------------
-
-Purpose
-~~~~~~~
 
 Used to describe app build jobs. These are sent to the BuildCenter. 
 They are created by processing DeployOrders.
@@ -39,9 +33,6 @@ Schema
 
 AppMetadataSnapshot
 -------------------
-
-Purpose
-~~~~~~~
 
 Used throughout different sections of the build process. It is also a major
 component of the cargo file. These snapshots are also used to track versions of
@@ -59,9 +50,6 @@ Schema
 EnvVars
 -------
 
-Purpose
-~~~~~~~
-
 Dictionary of services and their environment variables. This is meant to be
 persisted in some kind of database. 
 
@@ -73,17 +61,11 @@ Schema
 EnvDict
 -------
 
-Purpose
-~~~~~~~
-
 A simple key/value storage for environment variables.
 
 
 ZoneDeployOrder
 ---------------
-
-Purpose
-~~~~~~~
 
 Instructions for a dploy-zone to deploy an app given its cargo file.
 
@@ -96,9 +78,6 @@ Schema
 
 ZoneStopDeploy
 --------------
-
-Purpose
-~~~~~~~
 
 Stop a set of running apps
 
