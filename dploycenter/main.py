@@ -19,11 +19,13 @@ logger = logging.getLogger('dploycenter')
 parser = argparse.ArgumentParser(description='dploy-center server')
 parser.add_argument('--daemon', action='store_true')
 parser.add_argument('--quiet', action='store_true')
-parser.add_argument('-c', '--config-file', dest='config_file', 
+parser.add_argument('-c', '--config-file', dest='config_file',
         default='dploy.conf')
+
 
 class ApplicationDying(Exception):
     pass
+
 
 class ServerCoordinator(object):
     """Coordinates between server threads"""
@@ -59,12 +61,12 @@ class ServerCoordinator(object):
         servers = self._servers
         logger.debug('Starting %d threads' % len(servers))
         for server in servers:
-            thread = threading.Thread(target=server.start_server, 
-                    args=(self._context, self._control_socket_uri, 
+            thread = threading.Thread(target=server.start_server,
+                    args=(self._context, self._control_socket_uri,
                         self._options, self._config))
             threads.append(thread)
             thread.start()
-    
+
     def wait(self):
         """Wait for the threads"""
         threads = self._threads
@@ -80,7 +82,7 @@ class ServerCoordinator(object):
             if some_dead:
                 logger.debug('A thread has failed. Application is dying')
                 raise ApplicationDying()
-            
+
     def stop(self):
         control_socket = self._control_socket
         while True:
@@ -89,11 +91,12 @@ class ServerCoordinator(object):
             logger.debug('Sending shutdown message to threads')
             control_socket.send(constants.CONTROL_TOPIC)
             for thread in self._threads:
-                thread.join(5) # Wait for ten seconds
+                thread.join(5)  # Wait for ten seconds
             if threading.active_count() == 1:
                 logger.debug('Some threads still active. '
                         'Waiting for them to terminate')
                 break
+
 
 class DployCenterRunner(object):
     """Main Runner"""
@@ -125,9 +128,11 @@ class DployCenterRunner(object):
             coordinator.stop()
             logger.info('Done.')
 
+
 def main(args=None):
     runner = DployCenterRunner()
     runner.run(args=args)
+
 
 if __name__ == '__main__':
     main()
