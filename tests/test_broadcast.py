@@ -4,31 +4,27 @@ tests.test_broadcast
 
 Test the broadcast server
 """
-import fudge
+from mock import Mock
 from dploycenter.broadcast import BroadcastServer
 
-@fudge.test
-def test_broadcast_server_handle_incoming():
+
+def test_broadcast_server_handle_incoming_using_mock():
     # Basic Setup
-    fake_context = fudge.Fake()
-    fake_context.is_a_stub()
+    mock_context = Mock()
+    mock_options = Mock()
+    fake_config = {
+        'broadcast-socket-in': 'uri',
+        'broadcast-socket-out': 'uri',
+    }
+    mock_in_socket = Mock()
+    mock_out_socket = Mock()
 
-    fake_options = fudge.Fake()
-    fake_options.is_a_stub()
-    
-    fake_config = fudge.Fake()
-    fake_config.is_a_stub()
-    
-    # Test expectations
-    fake_in_socket = fudge.Fake()
-    # Fake the receiving
-    fake_message = fake_in_socket.expects('recv_multipart').returns_fake()
-    
-    fake_out_socket = fudge.Fake()
-    fake_out_socket.expects('send_multipart').with_args(fake_message)
+    server = BroadcastServer.create(mock_context, None,
+            mock_options, fake_config)
+    server.out_socket = mock_out_socket
+    server.handle_incoming(mock_in_socket)
 
-    server = BroadcastServer.create(fake_context, None,
-            fake_options, fake_config)
+    mock_in_socket.recv_multipart.assert_called_with()
+    mock_message = mock_in_socket.recv_multipart.return_value
 
-    server.out_socket = fake_out_socket
-    server.handle_incoming(fake_in_socket)
+    mock_out_socket.send_multipart.assert_called_with(mock_message)
