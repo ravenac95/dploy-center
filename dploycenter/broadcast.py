@@ -1,22 +1,21 @@
 import logging
 import zmq
-from . import constants
 from .server import Server
 
 logger = logging.getLogger('dploycenter')
 
+
 def start_server(context, control_socket_uri, options, config):
-    server = BroadcastServer.create(context, control_socket_uri, options, 
+    server = BroadcastServer.create(context, control_socket_uri, options,
             config)
     server.run()
 
+
 class BroadcastServer(Server):
     def setup_sockets(self):
-        broadcast_in_uri = self.config.get(constants.MAIN_CONFIG_SECTION, 
-                'broadcast-socket-in')
-        broadcast_out_uri = self.config.get(constants.MAIN_CONFIG_SECTION, 
-                'broadcast-socket-out')
-        
+        broadcast_in_uri = self.config['broadcast-socket-in']
+        broadcast_out_uri = self.config['broadcast-socket-out']
+
         in_socket = self.context.socket(zmq.PULL)
         in_socket.bind(broadcast_in_uri)
 

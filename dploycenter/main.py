@@ -106,8 +106,10 @@ class DployCenterRunner(object):
     def run(self, args=None):
         args = args or sys.argv[1:]
         options = parser.parse_args(args)
-        config = ConfigParser.ConfigParser()
-        config.read(options.config_file)
+        raw_config = ConfigParser.ConfigParser()
+        raw_config.read(options.config_file)
+        # Turn config into a dictionary. For easy access
+        config = dict(raw_config.items(constants.MAIN_CONFIG_SECTION))
         if not options.quiet:
             # Stdout handler
             handler = logging.StreamHandler()
