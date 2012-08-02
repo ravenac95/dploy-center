@@ -14,11 +14,49 @@ Used to describe deployment jobs. These are sent to the DeployQueue.
 Schema
 ~~~~~~
 
+- broadcast_id: (str) a string composed of [random-uuid]:[commit]
 - app: (str) app name
 - archive_uri: (str) uri to a tar.gz of the app
 - commit: (str) commit (hash|number)
 - update_message: (str) message about the update
 - metadata_version: (int) the metadata version to use. 0 means latest
+
+
+BroadcastMessage
+----------------
+
+Used for broadcasting messages to the client
+
+Schema
+~~~~~~
+
+- type: (str) *output* or *status*
+- message: (dict) BroadcastOutputData or BroadcastStatusData
+
+BroadcastOutputData Schema
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- type: (str) *line* or *raw*
+- data: (str) output string
+
+BroadcastStatusData Schema
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- type: (str) *error* or *completed*
+- data: (str or null)
+
+
+AppBuildAndDeployData
+---------------------
+
+Created by the AppService. It provides all the data needed to complete an app
+build and deployment.
+
+Schema
+~~~~~~
+
+- app_metadata_snapshot: (dict) the current AppMetadataSnapshot. *See Below*
+- processes: (dict) a dict about this app's processes
     
 
 AppBuildRequest
@@ -45,8 +83,7 @@ a particular app.
 Schema
 ~~~~~~
 
-- id: (int) unique identifier
-- version: (int) internal version number
+- release_version: (int) release version number
 - app: (str) app name
 - commit: (str) current commit (hash|number)
 - env: (dict) current dict of environment variables. This is an EnvVars

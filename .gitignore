@@ -61,5 +61,8 @@ quickactivate
 # Sphinx
 docs/_build
 
-#Tox
+# Tox
 .tox
+
+# Rope
+.ropeproject

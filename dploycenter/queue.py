@@ -3,7 +3,7 @@ import zmq
 import threading
 import uuid
 from .server import Server
-from .utils import BroadcastOutputStream
+from .utils import BroadcastStream
 
 logger = logging.getLogger('dploycenter')
 
@@ -25,30 +25,35 @@ class DeployDirector(object):
         self._broadcast_descriptor = broadcast_descriptor
 
     def complete_deployment(self):
-        print "ASDFaf"
-        output = BroadcastOutputStream.bind_to_descriptor(
+        deploy_request = self._deploy_request
+        app_name = deploy_request.app
+
+        broadcast = BroadcastStream.bind_to_descriptor(
                 self._broadcast_descriptor)
-        output.line("Currently in the deploy directory")
-        logger.info("Processing a DeployRequest")
+        logger.debug('Processing DeployRequest for "%s"' % app_name)
 
         app_service_client = self._app_service_client
         # Get the current app's metadata from app service
         # This should probably lock the app for any building so multiple jobs
         # don't go at once.
+        broadcast.line('Retrieving App metadata for "%s"' % app_name)
         app_metadata = app_service_client.open_metadata_for_build(
                 version=self._deploy_request.metadata_version)
         # Create a build request
-        build_request = AppBuildRequest.create(self._deploy_request,
+        build_request = AppBuildRequest.create(deploy_request,
                 app_metadata, self._broadcast_descriptor)
         # Send the build request
+        broadcast.line('Initializing cargo build for "%s"' % app_name)
         new_metadata = self._cargo_build_service_client.send_build_request(
                 build_request)
         # Update the app's metadata
         app_service_client.close_metadata(new_metadata)
+        broadcast.line('Stopping any active deployments for "%s"' % app_name)
+        broadcast.line('Deploying cargo to 2 zones')
+        broadcast.line('Deployment completed')
+        broadcast.completed()
 
-        output.line("Finishing up in here")
-        output.line("---END---")
-        logger.info("End Processing a DeployRequest")
+        logger.debug('End Processing DeployRequest for "%s"' % app_name)
 
 
 def handle_deploy_request(config, deploy_request, broadcast_descriptor):
@@ -96,11 +101,11 @@ class DeployQueueServer(Server):
         deploy_request = DeployRequest.from_dict(raw_deploy_request)
 
         # Create a BroadcastDescriptor
-        broadcast_descriptor = BroadcastDescriptor.create_random(
-                self._broadcast_in_uri)
+        broadcast_descriptor = BroadcastDescriptor.from_request(
+                self._broadcast_in_uri, deploy_request)
 
         # Send the listening channel back to the caller
-        socket.send_json(broadcast_descriptor.to_listening_dict())
+        socket.send_json({'ready': True})
 
         # Start the worker thread
         config_copy = self.config.copy()
@@ -119,6 +124,10 @@ class BroadcastDescriptor(object):
         id = '%s%s' % (prefix, uuid_hex)
         return cls(uri, id)
 
+    @classmethod
+    def from_request(cls, uri, deploy_request):
+        return cls(uri, deploy_request.broadcast_id)
+
     def __init__(self, uri, id):
         self.uri = uri
         self.id = id
@@ -133,15 +142,18 @@ class BroadcastDescriptor(object):
 class DeployRequest(object):
     @classmethod
     def from_dict(cls, data):
-        app = data['app']
+        app = str(data['app'])
         archive_uri = data['archive_uri']
-        commit = data['commit']
+        commit = str(data['commit'])
         update_message = data['update_message']
-        metadata_version = data['metadata_version']
-        return cls(app, archive_uri, commit, update_message, metadata_version)
+        metadata_version = int(data['metadata_version'])
+        broadcast_id = str(data['broadcast_id'])
+        return cls(broadcast_id, app,
+                archive_uri, commit, update_message, metadata_version)
 
-    def __init__(self, app, archive_uri, commit, update_message,
+    def __init__(self, broadcast_id, app, archive_uri, commit, update_message,
             metadata_version):
+        self.broadcast_id = broadcast_id
         self.app = app
         self.archive_uri = archive_uri
         self.commit = commit
@@ -149,7 +161,8 @@ class DeployRequest(object):
         self.metadata_version = metadata_version
 
     def to_dict(self):
-        return dict(app=self.app,
+        return dict(broadcast_id=self.broadcast_id,
+                app=self.app,
                 archive_uri=self.archive_uri,
                 commit=self.commit,
                 update_message=self.update_message,
