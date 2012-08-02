@@ -3,11 +3,13 @@ from dploycenter.queue import *
 
 
 def test_deploy_order_from_dict():
-    test_dict = dict(app='appname', archive_uri='uri', commit='commithash',
+    test_dict = dict(broadcast_id='broadcast_id',
+            app='appname', archive_uri='uri', commit='commithash',
             update_message='msg', metadata_version=1)
     deploy_order = DeployRequest.from_dict(test_dict)
 
     assert deploy_order.commit == 'commithash'
+    assert deploy_order.broadcast_id == 'broadcast_id'
     assert deploy_order.app == 'appname'
     assert deploy_order.archive_uri == 'uri'
     assert deploy_order.update_message == 'msg'
@@ -16,8 +18,9 @@ def test_deploy_order_from_dict():
 
 class TestDeployRequest(object):
     def setup(self):
-        self.test_dict = dict(app='appname', archive_uri='uri',
-                commit='commithash', update_message='msg', metadata_version=1)
+        self.test_dict = dict(broadcast_id='broadcast_id',
+                app='appname', archive_uri='uri', commit='commithash',
+                update_message='msg', metadata_version=1)
         self.deploy_request = DeployRequest.from_dict(self.test_dict)
 
     def test_to_dict(self):
