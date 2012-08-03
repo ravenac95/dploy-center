@@ -26,12 +26,6 @@ class AppServiceClient(object):
     def __init__(self, base_uri):
         self._base_uri = base_uri
 
-    def open_metadata_for_build(self, *args, **kwargs):
-        pass
-
-    def close_metadata(self, *args, **kwargs):
-        pass
-
     def start_new_release(self, app_name, version=0):
         data = dict(version=version)
         json_response = self._post_for_app(app_name, 'start-new-release', data)

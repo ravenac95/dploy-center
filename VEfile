@@ -1,5 +1,6 @@
 requirements:
   - pyzmq
+  - requests
 
 ---
 profile: development
@@ -10,3 +11,4 @@ requirements:
   - fudge
   - testkit
   - mock
+  - flask

@@ -19,7 +19,7 @@ Schema
 - archive_uri: (str) uri to a tar.gz of the app
 - commit: (str) commit (hash|number)
 - update_message: (str) message about the update
-- metadata_version: (int) the metadata version to use. 0 means latest
+- release_version: (int) the release version to use. 0 means latest
 
 
 BroadcastMessage
@@ -46,19 +46,6 @@ BroadcastStatusData Schema
 - data: (str or null)
 
 
-AppBuildAndDeployData
----------------------
-
-Created by the AppService. It provides all the data needed to complete an app
-build and deployment.
-
-Schema
-~~~~~~
-
-- app_metadata_snapshot: (dict) the current AppMetadataSnapshot. *See Below*
-- processes: (dict) a dict about this app's processes
-    
-
 AppBuildRequest
 ---------------
 
@@ -68,13 +55,12 @@ They are created by processing DeployRequests.
 Schema
 ~~~~~~
 
-- app_metadata_snapshot: (dict) the current AppMetadataSnapshot. *See Below*
+- app_release: (dict) the current AppRelease. *See Below*
 - archive_uri: (str) uri to a tar.gz file of the app's repository
-- broadcast_descriptor: (dict) a BroadcastDescriptor *See Below*
 
 
-AppMetadataSnapshot
--------------------
+AppRelease
+----------
 
 Used throughout different sections of the build process. It is also a major
 component of the cargo file. These snapshots are also used to track versions of
@@ -83,11 +69,12 @@ a particular app.
 Schema
 ~~~~~~
 
-- release_version: (int) release version number
+- version: (int) release version number
 - app: (str) app name
 - commit: (str) current commit (hash|number)
 - env: (dict) current dict of environment variables. This is an EnvVars
   structure
+- processes: (dict) dict of the available processes and their commands
 
 BroadcastDescriptor
 -------------------

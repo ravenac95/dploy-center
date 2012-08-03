@@ -4,6 +4,7 @@ develop:
 # Run all tests
 test:
 	nosetests -d
+	python tests/large/runner.py
 
 # Run medium and small tests only
 medium-test:

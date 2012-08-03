@@ -4,6 +4,7 @@ import threading
 import uuid
 from .server import Server
 from .utils import BroadcastStream
+from .appservice import AppServiceClient
 
 logger = logging.getLogger('dploycenter')
 
@@ -36,18 +37,19 @@ class DeployDirector(object):
         # Get the current app's metadata from app service
         # This should probably lock the app for any building so multiple jobs
         # don't go at once.
-        broadcast.line('Retrieving App metadata for "%s"' % app_name)
-        app_metadata = app_service_client.open_metadata_for_build(
+        broadcast.line('Retrieving App Release data for "%s"' % app_name)
+        release = app_service_client.start_new_release(app_name,
                 version=self._deploy_request.metadata_version)
         # Create a build request
         build_request = AppBuildRequest.create(deploy_request,
-                app_metadata, self._broadcast_descriptor)
+                release)
         # Send the build request
         broadcast.line('Initializing cargo build for "%s"' % app_name)
-        new_metadata = self._cargo_build_service_client.send_build_request(
+        env_update = self._cargo_build_service_client.send_build_request(
                 build_request)
         # Update the app's metadata
-        app_service_client.close_metadata(new_metadata)
+        release.update_env(env_update)
+        app_service_client.commit_release(app_name, release)
         broadcast.line('Stopping any active deployments for "%s"' % app_name)
         broadcast.line('Deploying cargo to 2 zones')
         broadcast.line('Deployment completed')
@@ -58,7 +60,7 @@ class DeployDirector(object):
 
 def handle_deploy_request(config, deploy_request, broadcast_descriptor):
     """Spawns the DeployDirector"""
-    app_service_client = AppServiceClient(config['app-service-socket'])
+    app_service_client = AppServiceClient(config['app-service-uri'])
     cargo_build_service_client = CargoBuildServiceClient(
             config['cargo-build-service-socket'])
     director = DeployDirector(app_service_client, cargo_build_service_client,
@@ -170,17 +172,6 @@ class DeployRequest(object):
                 )
 
 
-class AppServiceClient(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def open_metadata_for_build(self, *args, **kwargs):
-        pass
-
-    def close_metadata(self, *args, **kwargs):
-        pass
-
-
 class AppBuildRequest(object):
     @classmethod
     def create(cls, *args):
@@ -192,4 +183,4 @@ class CargoBuildServiceClient(object):
         pass
 
     def send_build_request(self, *args, **kwargs):
-        pass
+        return {}
