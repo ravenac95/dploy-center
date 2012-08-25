@@ -1,6 +1,9 @@
 requirements:
   - pyzmq
   - requests
+  - dploy-lib:
+    - git+https://github.com/ravenac95/dploy-lib.git@develop
+    - editable: true
 
 ---
 profile: development
