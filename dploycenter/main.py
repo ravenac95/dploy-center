@@ -1,6 +1,50 @@
 import sys
+import threading
+import appcontainers
+import copy
 from dploylib import servers
 from dploylib.services import Service
+
+
+def start_cargo_builder(*args):
+    """Runs the cargo builder"""
+    builder = CargoBuilder.new(*args)
+    builder.run()
+
+
+class CargoBuilderThread(object):
+    @classmethod
+    def start_new(cls, settings, request):
+        # Copy the request so there's no sharing issue between threads
+        request_copy = copy.deepcopy(request)
+
+        broadcast_in_uri = settings.get('broadcast_in_uri')
+        completed_uri = settings.get('completed_uri')
+
+        thread = threading.Thread(target=start_cargo_builder,
+                args=(broadcast_in_uri, completed_uri, request_copy))
+        cargo_builder_thread = cls(thread)
+        cargo_builder_thread.start()
+
+    def __init__(self, thread):
+        self._thread = thread
+
+    def start(self):
+        self._thread.start()
+
+
+class CargoBuilder(object):
+    @classmethod
+    def new(cls, broadcast_in_uri, completed_uri, request):
+        return cls(broadcast_in_uri, completed_uri, request)
+
+    def __init__(self, broadcast_in_uri, completed_uri, request):
+        self._request = request
+        self._completed_uri = completed_uri
+        self._broadcast_in_uri = broadcast_in_uri
+
+    def run(self):
+        pass
 
 
 class Release(object):
@@ -19,6 +63,9 @@ class Release(object):
         self.commit = commit
         self.env = env
         self.processes = processes
+
+    def copy(self):
+        Release(self.version, self.app)
 
 
 class BuildRequest(object):
@@ -41,13 +88,82 @@ class BuildRequest(object):
         self.release = release
 
 
-class ResponseServer(servers.Server):
-    @servers.bind_in('request', 'rep', obj=BuildRequest)
+class EndpointRequest(object):
+    @classmethod
+    def deserialize(cls, raw_data):
+        endpoint = raw_data['endpoint']
+        data = raw_data['data']
+        return cls(endpoint, data)
+
+    def __init__(self, endpoint, data):
+        self.endpoint = endpoint
+        self.data = data
+
+    def serialize(self):
+        return dict(endpoint=self.endpoint, data=self.data)
+
+
+class Response(object):
+    def __init__(self, data):
+        self.data = data
+
+    def serialize(self):
+        return dict(data=self.data)
+
+
+class EndpointNotFound(Exception):
+    pass
+
+
+class RequestReactor(servers.Handler):
+    def __call__(self, server, socket, received):
+        request = received.obj
+        endpoint = request.endpoint
+        endpoint_handler = getattr(self, endpoint, None)
+        if not endpoint_handler:
+            raise EndpointNotFound()
+        response_data = endpoint_handler(server, request)
+        response_obj = Response(response_data)
+        socket.send_obj(response_obj)
+
+
+class BuildQueueReactor(RequestReactor):
+    def __init__(self, *args, **kwargs):
+        super(BuildQueueReactor, self).__init__(*args, **kwargs)
+        self.queue = dict()
+
+    def queue(self, server, request):
+        """Enqueue some data"""
+        build_request = BuildRequest.deserialize(request.data)
+        return build_request
+
+    def result(self, server, request):
+        pass
+
+
+class BuildQueueServer(servers.Server):
+    def setup(self):
+        self.active_job_envelopes = dict()
+        self.app_container_service = appcontainers.setup_service()
+
+    @servers.bind_in('request', 'router', obj=BuildRequest)
     def request_received(self, socket, received):
-        broadcast_in_uri = self._settings['broadcast_in_uri']
-        build_request = received.obj
-        print build_request
-        print broadcast_in_uri
+        envelope = received.envelope
+        active_job_envelopes = self.active_job_envelopes
+        job_id = envelope.id
+        if job_id in active_job_envelopes:
+            active_job_envelopes[job_id] = envelope
+        request = envelope.obj
+        CargoBuilderThread.start(request)
+
+    @servers.bind_in('complete', 'pull')
+    def job_completed(self, socket, received):
+        import json
+        data = received.data
+        request_envelope = self.active_jobs[data]
+        response_envelope = request_envelope.make_response('application/json',
+                json.dumps({'status': 'completed'}))
+        self.sockets.request.send_envelope(response_envelope)
 
 
 class BroadcastServer(servers.Server):
@@ -62,7 +178,7 @@ class BroadcastServer(servers.Server):
 
 service = Service()
 service.add_server('broadcast', BroadcastServer)
-service.add_server('queue', ResponseServer)
+service.add_server('queue', BuildQueueServer)
 
 
 def main():
