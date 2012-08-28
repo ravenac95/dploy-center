@@ -1,46 +1,25 @@
-import zmq
+import testkit
+from dploylib.transport import Socket
+from dploycenter.main import *
 
-class FakeGitosis(object):
-    @classmethod
-    def create(cls, notify_uri="tcp://127.0.0.1:5558", 
-            broadcast_out_uri="tcp://127.0.0.1:5557"):
-        client = cls()
-        client.connect(notify_uri, broadcast_out_uri)
-        return client
 
-    def connect(self, notify_uri, broadcast_out_uri):
-        context = zmq.Context()
-        
-        notify_socket = context.socket(zmq.REQ)
-        notify_socket.connect(notify_uri)
+def random_request():
+    broadcast_id = testkit.random_string(10)
+    app = testkit.random_string(10)
+    archive_uri = 'some_archive_uri'
+    update_message = 'This is an update message'
+    commit = testkit.random_string(10)
+    release = Release(1, app, commit, {}, {})
+    request = BuildRequest(broadcast_id, app, archive_uri, update_message,
+            release)
+    return request
 
-        broadcast_out_socket = context.socket(zmq.SUB)
-        # subscribe to all for now
-        broadcast_out_socket.setsockopt(zmq.SUBSCRIBE, '')
-        broadcast_out_socket.connect(broadcast_out_uri)
 
-        self.broadcast_out_socket = broadcast_out_socket
-        self.notify_socket = notify_socket
-    
-    def notify(self, message="hello"):
-        notify_socket = self.notify_socket
+def make_a_request(request_uri, request):
+    socket = Socket.connect_new('req', request_uri)
+    socket.send_obj(request, id=request.broadcast_id)
+    return socket.receive_envelope()
 
-        notify_socket.send(message)
-        message = notify_socket.recv()
-        
-        print "Received: %s" % message
 
-        broadcast_out_socket = self.broadcast_out_socket
-        while True:
-            msg = broadcast_out_socket.recv()
-            if msg == 'END':
-                break
-            print msg
-        print "done!"
-
-def main():
-    gitosis = FakeGitosis.create()
-    gitosis.notify()
-
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()
