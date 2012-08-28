@@ -2,6 +2,7 @@ import sys
 import threading
 import appcontainers
 import copy
+import time
 import logging
 from dploylib import servers
 from dploylib.services import Service
@@ -196,6 +197,16 @@ class BuildQueueServer(servers.Server):
         active_job_envelopes[job_id] = (envelope, app_container)
         CargoBuilderThread.start_new(job_id, self.settings, request,
                 unmanaged_app_container)
+        # FIXME This is a bad hack
+        # Give it some time inbetween each request so they don't trip over each
+        # other. This is a horrible hack but it will work for now. The key at
+        # this point would be tuning the number so it's not too slow. However,
+        # stability is much more important than speed for this particular
+        # thing
+        time.sleep(1.0)
+
+    def start_next_job(self):
+        time.sleep(1.0)
 
     @servers.bind_in('complete', 'pull')
     def job_completed(self, socket, received):

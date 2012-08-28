@@ -1,6 +1,6 @@
 pyzmq (pyzmq==2.2.0.1)
 requests (requests==0.13.9)
-dploy-lib (-e git+https://github.com/ravenac95/dploy-lib.git@ba40cde3ee8ac3f7d611a7ba6bf4a089f9facd59#egg=dploy_lib-dev)
+dploy-lib (-e git+https://github.com/ravenac95/dploy-lib.git@8e4b457504604f3bf6b84c9c93c2335e682cdd41#egg=dploy_lib-dev)
   pyzmq (pyzmq==2.2.0.1)
   requests (requests==0.13.9)
   pyyaml (PyYAML==3.10)
