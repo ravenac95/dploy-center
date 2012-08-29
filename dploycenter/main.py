@@ -4,6 +4,7 @@ import appcontainers
 import copy
 import time
 import logging
+from collections import deque
 from dploylib import servers
 from dploylib.services import Service
 from dploylib.transport import Context
@@ -177,6 +178,10 @@ class BuildQueueServer(servers.Server):
     def setup(self):
         self._active_job_envelopes = dict()
         self._app_container_service = appcontainers.setup_service()
+        self._max_concurrent_builds = int(self.settings.get(
+            'max-concurrent-builds'))
+        self._active_builders = 0
+        self._queue = deque()
 
     @servers.bind_in('request', 'router', obj=BuildRequest)
     def request_received(self, socket, received):
@@ -195,18 +200,24 @@ class BuildQueueServer(servers.Server):
         app_container = self._app_container_service.provision()
         unmanaged_app_container = app_container.unmanaged_container
         active_job_envelopes[job_id] = (envelope, app_container)
-        CargoBuilderThread.start_new(job_id, self.settings, request,
-                unmanaged_app_container)
-        # FIXME This is a bad hack
+        self.queue_job(job_id, self.settings, request, unmanaged_app_container)
+
+    def queue_job(self, job_id, request, unmanaged_app_container):
+        job_tuple = (job_id, self.settings, request, unmanaged_app_container)
+        self._queue.append(job_tuple)
+
+    def start_next_job(self):
+        # FIXME The time delay in this method is a huge hack
         # Give it some time inbetween each request so they don't trip over each
         # other. This is a horrible hack but it will work for now. The key at
         # this point would be tuning the number so it's not too slow. However,
         # stability is much more important than speed for this particular
         # thing
-        time.sleep(1.0)
-
-    def start_next_job(self):
-        time.sleep(1.0)
+        if self._active_builders < self._max_concurrent_builds:
+            job_tuple = self._queue.popleft()
+            CargoBuilderThread.start_new(*job_tuple)
+            time.sleep(1.0)
+            self._active_builders += 1
 
     @servers.bind_in('complete', 'pull')
     def job_completed(self, socket, received):
@@ -226,6 +237,8 @@ class BuildQueueServer(servers.Server):
         print data
         self.sockets.request.send_envelope(response_envelope)
         del active_job_envelopes[job_id]
+
+        # Call the next job if there's any
 
 
 class BroadcastServer(servers.Server):
